@@ -1,0 +1,64 @@
+h2
+{
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    text-align: center;
+    background: bisque;
+    text-transform: capitalize;
+}
+
+.tableau
+{
+    width: 100%;
+    font-family: "Trebuchet MS", Arial, Helvetica, sans-serif;
+    border: 1px white;
+    border-collapse: collapse;
+}
+
+
+.title_table
+{
+    background: darkred;
+    color: white;
+    height: 75px;
+
+}
+
+.commandLink
+{
+    text-decoration: underline;
+    color: white;
+}
+.commandLink:hover
+{
+    text-decoration: underline;
+    color: yellow;
+}
+
+.content_table
+{
+    background: #dadada;
+    text-align: center;
+    height: 40px;
+}
+
+.unit_purchase
+{
+    text-align: center;
+    border-radius: 50px;
+    border: 1px black;
+}
+
+.centered
+{
+    display: flex;
+    flex-direction: column;
+    margin: 5px 20px;
+}
+
+.bottom_bar
+{
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-around;
+}
+

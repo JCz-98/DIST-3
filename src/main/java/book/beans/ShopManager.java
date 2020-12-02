@@ -62,6 +62,7 @@ public class ShopManager implements Serializable {
 
     }
 
+
     public ProductsBean getProductsBean() {
         return productsBean;
     }

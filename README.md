@@ -2,12 +2,14 @@
 Simple JSF Table application
 
 The application has 2 main html pages which the user interacts with.
+	
 	-> productDetails (MIKE PINTA): page where the user enters the number of products
 what do you want to buy. It is mainly handled by the ProductsViewBean bean
 (ViewScoped); therefore it can be opened by multiple tabs / windows within the
 same browser to make independent purchases. However, the "users"
 are defined from each Session, so purchases are stored in, implements error messaging.
 UserManager (SessionScoped). 
+	
 	-> purchaseItems (MIKE) PINTA: page in which the user enters after making a
 successful purchase on the productDetails.xhtml page. Information is accessed here
 stored in UserManager (SessionScoped), which corresponds to the last

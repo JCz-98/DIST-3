@@ -22,10 +22,31 @@ public class ProductTable implements Serializable {
     private String priceCriteria = "all";
     private ArrayList<Product> purchasedProducts = new ArrayList<>();
     private ArrayList<Product> filteredProducts = new ArrayList<>();
+    private String errorString = "";
+    private String serialSortType = "asc";
+    private String nameSortType = "asc";
+    private String unitPriceSortType = "asc";
+    private String stockSortType = "asc";
+    private String amountSortType = "asc";
+    private String totalPriceSortType = "asc";
+
+    public ProductTable() {
+        productsBean = ProductsBean.getSingleton();
+        rowsOnPage = 5;
+
+        setPurchasedProducts(productsBean.getProductCopy());
+        setFilteredProducts(new ArrayList<>(purchasedProducts));
+
+    }
+
     public ArrayList<Product> getFilteredProducts() {
         return filteredProducts;
     }
-    private String errorString = "";
+
+    public void setFilteredProducts(ArrayList<Product> newFiltered) {
+        filteredProducts.clear();
+        filteredProducts.addAll(newFiltered);
+    }
 
     public String getErrorString() {
         return errorString;
@@ -34,23 +55,6 @@ public class ProductTable implements Serializable {
     public void setErrorString(String errorString) {
         this.errorString = errorString;
     }
-
-    public ProductTable(){
-        productsBean = ProductsBean.getSingleton();
-        rowsOnPage = 5;
-
-        setPurchasedProducts(productsBean.getProductCopy());
-        setFilteredProducts(new ArrayList<>(purchasedProducts));
-
-        /*
-        try {
-            readProductData();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        */
-    }
-
 
     public ProductsBean getProductsBean() {
         return productsBean;
@@ -78,18 +82,18 @@ public class ProductTable implements Serializable {
 
     public double getTotalPrice() {
         double qnty = 0;
-        for(Product p : purchasedProducts){
+        for (Product p : purchasedProducts) {
             qnty += p.getTotalPrice();
         }
-        return (double) Math.round(qnty*100.0) / 100.0;
+        return (double) Math.round(qnty * 100.0) / 100.0;
     }
 
-    public void setProductUnits(Product p){
+    public void setProductUnits(Product p) {
         Iterator<Product> iter = purchasedProducts.iterator();
-        while (iter.hasNext()){
+        while (iter.hasNext()) {
             Product products = iter.next();
 
-            if(products.getSerialNum().equals(p.getSerialNum()) && p.getPurchaseNum() >= 0){
+            if (products.getSerialNum().equals(p.getSerialNum()) && p.getPurchaseNum() >= 0) {
                 products.setPurchaseNum(p.getPurchaseNum());
                 products.setTotalPrice();
             }
@@ -98,41 +102,38 @@ public class ProductTable implements Serializable {
         setErrorString(getAllErrors());
     }
 
-    public void viewProductData(){
+    public void viewProductData() {
 
         System.out.println("Product");
-        for(Product p: purchasedProducts){
+        for (Product p : purchasedProducts) {
             System.out.println(getTotalPrice());
         }
     }
 
-    public String doPurchase(){
+    public String doPurchase() {
         ArrayList<Product> invalidProducts = productsBean.validatePurchase(getPurchasedProducts());
         String action;
         shopManager.getLastPurchase().clear();
         boolean atLeast1Item = false;
         if (invalidProducts.size() == 0) {
-            for(Product p: purchasedProducts) {
-                if (p.getPurchaseNum() > 0){
+            for (Product p : purchasedProducts) {
+                if (p.getPurchaseNum() > 0) {
                     shopManager.getLastPurchase().add(p);
                     atLeast1Item = true;
                 }
             }
-            if (atLeast1Item){
+            if (atLeast1Item) {
                 action = "purchase";
                 shopManager.getPurchases().add(shopManager.getLastPurchase());
-            }
-            else {
+            } else {
                 setErrorString("You need to add at least 1 item in order to make a purchase.");
                 action = null;
             }
-        }
-
-        else {
+        } else {
             action = null;
             StringBuilder err_sb = new StringBuilder();
             err_sb.append("Unable to purchase - not enough stock to fulfill your request for the following: ");
-            for(Product p: invalidProducts) {
+            for (Product p : invalidProducts) {
                 if (p.getStockNum() == 0) {
                     for (int i = 0; i < purchasedProducts.size(); i++) {
                         Product cur = purchasedProducts.get(i);
@@ -158,7 +159,6 @@ public class ProductTable implements Serializable {
         return action;
     }
 
-
     public String getPriceCriteria() {
         return priceCriteria;
     }
@@ -174,7 +174,6 @@ public class ProductTable implements Serializable {
     public void setNameCriteria(String criteria) {
         this.nameCriteria = criteria;
     }
-
 
     public HtmlDataTable getTable() {
         return table;
@@ -195,82 +194,6 @@ public class ProductTable implements Serializable {
     public void goToNextPage() {
         table.setFirst(table.getFirst() + table.getRows());
 
-    }
-
-    public void goToLastPage() {
-        int totalRows = table.getRowCount();
-        int displayRows = table.getRows();
-        int full = totalRows / displayRows;
-        int modulo = totalRows % displayRows;
-
-        if (modulo > 0) {
-            table.setFirst(full * displayRows);
-        } else {
-            table.setFirst((full - 1) * displayRows);
-        }
-    }
-
-    public int getRowsOnPage() {
-        return rowsOnPage;
-    }
-
-    public void setRowsOnPage(int rowsOnPage) {
-        this.rowsOnPage = rowsOnPage;
-    }
-
-    public void refreshTable() {
-        priceCriteria = "all";
-        nameCriteria = "";
-        setFilteredProducts(getPurchasedProducts());
-        Collections.sort(filteredProducts, new Comparator<Product>() {
-            @Override
-            public int compare(Product key_1, Product key_2) {
-                return (Integer.parseInt(key_1.getSerialNum()) - Integer.parseInt(key_2.getSerialNum()));
-            }
-        });
-    }
-
-    public void addPriceFilter(){
-        filteredProducts.clear();
-        nameCriteria = "";
-        if (priceCriteria.equals(">=10")) {
-            for (int i = 0; i < purchasedProducts.size(); i++) {
-                Product products = purchasedProducts.get(i);
-                if (products.getPricePerUnit() >= 10.0) {
-                    filteredProducts.add(purchasedProducts.get(i));
-                }
-            }
-        }
-
-        else if (priceCriteria.equals("<10")) {
-            for (int i = 0; i < purchasedProducts.size(); i++) {
-                Product products = purchasedProducts.get(i);
-                if (products.getPricePerUnit() < 10.0) {
-                    filteredProducts.add(purchasedProducts.get(i));
-                }
-            }
-        }
-
-        else
-            filteredProducts.addAll(getPurchasedProducts());
-    }
-
-    public void addNameFilter(){
-        filteredProducts.clear();
-        priceCriteria = "all";
-        if(!nameCriteria.equals("")){
-            String regex = nameCriteria.replace("*", ".*");
-            for (int i = 0; i < purchasedProducts.size(); i++) {
-                Product products = purchasedProducts.get(i);
-                if (products.getProductName().matches(regex)) {
-                    filteredProducts.add(purchasedProducts.get(i));
-                }
-            }
-        }
-    }
-    public void setFilteredProducts(ArrayList<Product> newFiltered) {
-        filteredProducts.clear();
-        filteredProducts.addAll(newFiltered);
     }
 
     /*
@@ -342,26 +265,87 @@ public class ProductTable implements Serializable {
     }
     */
 
-    private String serialSortType = "asc";
-    private String nameSortType = "asc";
-    private String unitPriceSortType = "asc";
-    private String stockSortType = "asc";
-    private String amountSortType = "asc";
-    private String totalPriceSortType = "asc";
+    public void goToLastPage() {
+        int totalRows = table.getRowCount();
+        int displayRows = table.getRows();
+        int full = totalRows / displayRows;
+        int modulo = totalRows % displayRows;
+
+        if (modulo > 0) {
+            table.setFirst(full * displayRows);
+        } else {
+            table.setFirst((full - 1) * displayRows);
+        }
+    }
+
+    public int getRowsOnPage() {
+        return rowsOnPage;
+    }
+
+    public void setRowsOnPage(int rowsOnPage) {
+        this.rowsOnPage = rowsOnPage;
+    }
+
+    public void refreshTable() {
+        priceCriteria = "all";
+        nameCriteria = "";
+        setFilteredProducts(getPurchasedProducts());
+        Collections.sort(filteredProducts, new Comparator<Product>() {
+            @Override
+            public int compare(Product key_1, Product key_2) {
+                return (Integer.parseInt(key_1.getSerialNum()) - Integer.parseInt(key_2.getSerialNum()));
+            }
+        });
+    }
+
+    public void addPriceFilter() {
+        filteredProducts.clear();
+        nameCriteria = "";
+        if (priceCriteria.equals(">=10")) {
+            for (int i = 0; i < purchasedProducts.size(); i++) {
+                Product products = purchasedProducts.get(i);
+                if (products.getPricePerUnit() >= 10.0) {
+                    filteredProducts.add(purchasedProducts.get(i));
+                }
+            }
+        } else if (priceCriteria.equals("<10")) {
+            for (int i = 0; i < purchasedProducts.size(); i++) {
+                Product products = purchasedProducts.get(i);
+                if (products.getPricePerUnit() < 10.0) {
+                    filteredProducts.add(purchasedProducts.get(i));
+                }
+            }
+        } else
+            filteredProducts.addAll(getPurchasedProducts());
+    }
+
+    public void addNameFilter() {
+        filteredProducts.clear();
+        priceCriteria = "all";
+        if (!nameCriteria.equals("")) {
+            String regex = nameCriteria.replace("*", ".*");
+            for (int i = 0; i < purchasedProducts.size(); i++) {
+                Product products = purchasedProducts.get(i);
+                if (products.getProductName().matches(regex)) {
+                    filteredProducts.add(purchasedProducts.get(i));
+                }
+            }
+        }
+    }
 
     public String sortProductsBySerialNum() {
 
         Collections.sort(filteredProducts, new Comparator<Product>() {
             @Override
             public int compare(Product key_1, Product key_2) {
-                if(serialSortType.equals("asc")){
+                if (serialSortType.equals("asc")) {
                     return key_1.getSerialNum().compareTo(key_2.getSerialNum());
                 } else {
                     return (-1) * key_1.getSerialNum().compareTo(key_2.getSerialNum());
                 }
             }
         });
-        serialSortType=(serialSortType.equals("asc")) ? "dsc" : "asc";
+        serialSortType = (serialSortType.equals("asc")) ? "dsc" : "asc";
         return null;
     }
 
@@ -370,14 +354,14 @@ public class ProductTable implements Serializable {
         Collections.sort(filteredProducts, new Comparator<Product>() {
             @Override
             public int compare(Product key_1, Product key_2) {
-                if(nameSortType.equals("asc")){
+                if (nameSortType.equals("asc")) {
                     return key_1.getProductName().compareTo(key_2.getProductName());
                 } else {
                     return (-1) * key_1.getProductName().compareTo(key_2.getProductName());
                 }
             }
         });
-        nameSortType=(nameSortType.equals("asc")) ? "dsc" : "asc";
+        nameSortType = (nameSortType.equals("asc")) ? "dsc" : "asc";
         return null;
     }
 
@@ -386,14 +370,14 @@ public class ProductTable implements Serializable {
         Collections.sort(filteredProducts, new Comparator<Product>() {
             @Override
             public int compare(Product key_1, Product key_2) {
-                if(unitPriceSortType.equals("asc")){
+                if (unitPriceSortType.equals("asc")) {
                     return key_1.getPricePerUnit() > key_2.getPricePerUnit() ? 1 : -1; //"==" es irrelevante porque es sorting
                 } else {
                     return (-1) * (key_1.getPricePerUnit() > key_2.getPricePerUnit() ? 1 : -1);
                 }
             }
         });
-        unitPriceSortType=(unitPriceSortType.equals("asc")) ? "dsc" : "asc";
+        unitPriceSortType = (unitPriceSortType.equals("asc")) ? "dsc" : "asc";
         return null;
     }
 
@@ -402,14 +386,14 @@ public class ProductTable implements Serializable {
         Collections.sort(filteredProducts, new Comparator<Product>() {
             @Override
             public int compare(Product key_1, Product key_2) {
-                if(stockSortType.equals("asc")){
+                if (stockSortType.equals("asc")) {
                     return key_1.getStockNum() - key_2.getStockNum();
                 } else {
                     return (-1) * (key_1.getStockNum() - key_2.getStockNum());
                 }
             }
         });
-        stockSortType=(stockSortType.equals("asc")) ? "dsc" : "asc";
+        stockSortType = (stockSortType.equals("asc")) ? "dsc" : "asc";
         return null;
     }
 
@@ -418,14 +402,14 @@ public class ProductTable implements Serializable {
         Collections.sort(filteredProducts, new Comparator<Product>() {
             @Override
             public int compare(Product key_1, Product key_2) {
-                if(amountSortType.equals("asc")){
+                if (amountSortType.equals("asc")) {
                     return key_1.getPurchaseNum() - key_2.getPurchaseNum();
                 } else {
                     return (-1) * (key_1.getPurchaseNum() - key_2.getPurchaseNum());
                 }
             }
         });
-        amountSortType=(amountSortType.equals("asc")) ? "dsc" : "asc";
+        amountSortType = (amountSortType.equals("asc")) ? "dsc" : "asc";
         return null;
     }
 
@@ -434,22 +418,22 @@ public class ProductTable implements Serializable {
         Collections.sort(filteredProducts, new Comparator<Product>() {
             @Override
             public int compare(Product key_1, Product key_2) {
-                if(totalPriceSortType.equals("asc")){
+                if (totalPriceSortType.equals("asc")) {
                     return key_1.getTotalPrice() > key_2.getTotalPrice() ? 1 : -1; //"==" es irrelevante porque es sorting
                 } else {
                     return (-1) * (key_1.getTotalPrice() > key_2.getTotalPrice() ? 1 : -1);
                 }
             }
         });
-        totalPriceSortType=(totalPriceSortType.equals("asc")) ? "dsc" : "asc";
+        totalPriceSortType = (totalPriceSortType.equals("asc")) ? "dsc" : "asc";
         return null;
     }
 
-    public String getAllErrors(){
+    public String getAllErrors() {
         StringBuilder errStrBuilder = new StringBuilder();
-        for(Product p: purchasedProducts){
+        for (Product p : purchasedProducts) {
             errStrBuilder.append(p.getErrorStr());
-            if(!p.getErrorStr().equals(""))
+            if (!p.getErrorStr().equals(""))
                 errStrBuilder.append("\n");
         }
         return errStrBuilder.toString();

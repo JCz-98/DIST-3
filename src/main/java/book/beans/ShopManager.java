@@ -12,26 +12,38 @@ import java.util.ArrayList;
 @SessionScoped
 public class ShopManager implements Serializable {
 
-    private ProductsBean productsBean;
     FacesContext fCtx = FacesContext.getCurrentInstance();
-    //HttpSession session = (HttpSession) fCtx.getExternalContext().getSession(false);
-    //String sessionId = session.getId();
+    private ProductsBean productsBean;
     private HtmlDataTable table;
     private int rowsOnPage;
     private String nameCriteria = "";
     private String priceCriteria = "all";
     private ArrayList<Product> purchasedProducts = new ArrayList<>();
     private ArrayList<Product> filteredProducts = new ArrayList<>();
+    private ArrayList<ArrayList<Product>> purchases = new ArrayList<>();
+    private String errorString = "";
+    private ArrayList<Product> lastPurchase = new ArrayList<>();
+    public ShopManager() {
+        productsBean = ProductsBean.getSingleton();
+        rowsOnPage = 5;
+
+        setPurchasedProducts(productsBean.getProductCopy());
+        setFilteredProducts(new ArrayList<>(purchasedProducts));
+
+    }
+
     public ArrayList<Product> getFilteredProducts() {
         return filteredProducts;
+    }
+
+    public void setFilteredProducts(ArrayList<Product> newFiltered) {
+        filteredProducts.clear();
+        filteredProducts.addAll(newFiltered);
     }
 
     public ArrayList<ArrayList<Product>> getPurchases() {
         return purchases;
     }
-
-    private ArrayList<ArrayList<Product>> purchases = new ArrayList<>();
-    private String errorString = "";
 
     public ArrayList<Product> getLastPurchase() {
         return lastPurchase;
@@ -41,7 +53,6 @@ public class ShopManager implements Serializable {
         this.lastPurchase = lastPurchase;
     }
 
-    private ArrayList<Product> lastPurchase = new ArrayList<>();
     public String getErrorString() {
         return errorString;
     }
@@ -49,19 +60,6 @@ public class ShopManager implements Serializable {
     public void setErrorString(String errorString) {
         this.errorString = errorString;
     }
-
-
-    public ShopManager(){
-        productsBean = ProductsBean.getSingleton();
-        //System.out.println("Id usuario");
-        //System.out.println(sessionId);
-        rowsOnPage = 5;
-
-        setPurchasedProducts(productsBean.getProductCopy());
-        setFilteredProducts(new ArrayList<>(purchasedProducts));
-
-    }
-
 
     public ProductsBean getProductsBean() {
         return productsBean;
@@ -88,14 +86,9 @@ public class ShopManager implements Serializable {
         this.purchasedProducts = new ArrayList<>(purchasedProducts);
     }
 
-    public void setFilteredProducts(ArrayList<Product> newFiltered) {
-        filteredProducts.clear();
-        filteredProducts.addAll(newFiltered);
-    }
-
-    public double getLastPurchaseTotalPrice(){
+    public double getLastPurchaseTotalPrice() {
         double total = 0;
-        for(Product p: lastPurchase){
+        for (Product p : lastPurchase) {
             total += p.getTotalPrice();
         }
         return (double) Math.round(total * 100d) / 100d;

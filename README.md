@@ -1,6 +1,10 @@
 # DIST-3
 Simple JSF Table application
 
+Authros: Cazco Jonathan
+	Naunay Erick
+	Pinta Mike
+
 The application has 2 main html pages which the user interacts with.
 	
 	-> productDetails (MIKE PINTA): page where the user enters the number of products
